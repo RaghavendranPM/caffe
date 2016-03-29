@@ -55,6 +55,9 @@ class Captioner():
     self.lstm_net.blobs['input_sentence'].reshape(1, batch_size)
     self.lstm_net.blobs['image_features'].reshape(batch_size,
         *self.lstm_net.blobs['image_features'].data.shape[1:])
+    if 'fc7_context' in list(self.lstm_net.blobs):
+        self.lstm_net.blobs['fc7_context'].reshape(batch_size,
+            *self.lstm_net.blobs['fc7_context'].data.shape[1:])
     self.lstm_net.reshape()
 
   def preprocess_image(self, image, verbose=False):
@@ -97,6 +100,18 @@ class Captioner():
     image_features[:] = descriptor
     net.forward(image_features=image_features, cont_sentence=cont_input,
                 input_sentence=word_input)
+    output_preds = net.blobs[output].data[0, 0, :]
+    return output_preds
+
+  def predict_single_word_context(self, descriptor, fc7_context, previous_word, output='probs'):
+    net = self.lstm_net
+    cont = 0 if previous_word == 0 else 1
+    cont_input = np.array([cont])
+    word_input = np.array([previous_word])
+    image_features = np.zeros_like(net.blobs['image_features'].data)
+    image_features[:] = descriptor
+    net.forward(image_features=image_features, cont_sentence=cont_input,
+                input_sentence=word_input, fc7_context=fc7_context)
     output_preds = net.blobs[output].data[0, 0, :]
     return output_preds
 
