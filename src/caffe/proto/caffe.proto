@@ -239,6 +239,8 @@ message SolverParameter {
   }
   // DEPRECATED: use type instead of solver_type
   optional SolverType solver_type = 30 [default = SGD];
+
+  optional int32 batch_l = 999 [default = 1];
 }
 
 // A message that stores the solver snapshots

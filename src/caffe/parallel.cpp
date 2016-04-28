@@ -217,7 +217,7 @@ P2PSync<Dtype>::P2PSync(shared_ptr<Solver<Dtype> > root_solver,
     solver_ = root_solver;
   } else {
     Caffe::set_root_solver(false);
-    solver_.reset(new WorkerSolver<Dtype>(param, root_solver.get()));
+    solver_.reset(caffe::SolverRegistry<Dtype>::CreateSolver(param));
     Caffe::set_root_solver(true);
   }
   this->configure(solver_.get());
@@ -235,7 +235,7 @@ P2PSync<Dtype>::P2PSync(shared_ptr<Solver<Dtype> > root_solver,
     }
     // Allocate receiving buffer on parent
     CUDA_CHECK(cudaSetDevice(peer));
-    CUDA_CHECK(cudaMalloc(&parent_grads_, size_ * sizeof(Dtype)));
+    CUDA_CHECK(cudaMalloc(&parent_params_, size_ * sizeof(Dtype)));
     CUDA_CHECK(cudaSetDevice(self));
   }
 
@@ -254,7 +254,7 @@ P2PSync<Dtype>::~P2PSync() {
   CUDA_CHECK(cudaSetDevice(self));
 
   if (parent_) {
-    CUDA_CHECK(cudaFree(parent_grads_));
+    CUDA_CHECK(cudaFree(parent_params_));
     const int peer = parent_->solver_->param().device_id();
     int access;
     CUDA_CHECK(cudaDeviceCanAccessPeer(&access, self, peer));
@@ -322,7 +322,7 @@ void P2PSync<Dtype>::on_start() {
 }
 
 template<typename Dtype>
-void P2PSync<Dtype>::on_gradients_ready() {
+void P2PSync<Dtype>::on_params_ready() {
 #ifndef CPU_ONLY
 #ifdef DEBUG
   int device;
@@ -330,11 +330,11 @@ void P2PSync<Dtype>::on_gradients_ready() {
   CHECK(device == solver_->param().device_id());
 #endif
 
-  // Sum children gradients as they appear in the queue
+  // Sum children parameters as they appear in the queue
   for (int i = 0; i < children_.size(); ++i) {
     P2PSync<Dtype> *child = queue_.pop();
-    Dtype* src = child->parent_grads_;
-    Dtype* dst = diff_;
+    Dtype* src = child->parent_params_;
+    Dtype* dst = data_;
 
 #ifdef DEBUG
     bool ok = false;
@@ -354,10 +354,10 @@ void P2PSync<Dtype>::on_gradients_ready() {
     caffe_gpu_add(size_, src, dst, dst);
   }
 
-  // Send gradients to parent
+  // Send parameters to parent
   if (parent_) {
-    Dtype* src = diff_;
-    Dtype* dst = parent_grads_;
+    Dtype* src = data_;
+    Dtype* dst = parent_params_;
 
 #ifdef DEBUG
     cudaPointerAttributes attributes;
@@ -372,9 +372,8 @@ void P2PSync<Dtype>::on_gradients_ready() {
     CUDA_CHECK(cudaStreamSynchronize(cudaStreamDefault));
     parent_->queue_.push(this);
   } else {
-    // Loss functions divide gradients by the batch size, so to compensate
-    // for split batch, the root solver divides by number of solvers.
-    caffe_gpu_scal(size_, Dtype(1.0 / Caffe::solver_count()), diff_);
+    // Average the parameters from different solvers
+    caffe_gpu_scal(size_, Dtype(1.0 / Caffe::solver_count()), data_);
   }
 #endif
 }

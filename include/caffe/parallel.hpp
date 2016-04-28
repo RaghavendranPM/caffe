@@ -100,7 +100,7 @@ class P2PSync : public GPUParams<Dtype>, public Solver<Dtype>::Callback,
 
  protected:
   void on_start();
-  void on_gradients_ready();
+  void on_params_ready();
 
   void InternalThreadEntry();
 
@@ -108,7 +108,7 @@ class P2PSync : public GPUParams<Dtype>, public Solver<Dtype>::Callback,
   vector<P2PSync<Dtype>*> children_;
   BlockingQueue<P2PSync<Dtype>*> queue_;
   const int initial_iter_;
-  Dtype* parent_grads_;
+  Dtype* parent_params_;
   shared_ptr<Solver<Dtype> > solver_;
 
   using Params<Dtype>::size_;

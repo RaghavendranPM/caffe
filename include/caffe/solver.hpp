@@ -78,7 +78,7 @@ class Solver {
   class Callback {
    protected:
     virtual void on_start() = 0;
-    virtual void on_gradients_ready() = 0;
+    virtual void on_params_ready() = 0;
 
     template <typename T>
     friend class Solver;
@@ -132,29 +132,29 @@ class Solver {
   DISABLE_COPY_AND_ASSIGN(Solver);
 };
 
-/**
- * @brief Solver that only computes gradients, used as worker
- *        for multi-GPU training.
- */
-template <typename Dtype>
-class WorkerSolver : public Solver<Dtype> {
- public:
-  explicit WorkerSolver(const SolverParameter& param,
-      const Solver<Dtype>* root_solver = NULL)
-      : Solver<Dtype>(param, root_solver) {}
-
- protected:
-  void ApplyUpdate() {}
-  void SnapshotSolverState(const string& model_filename) {
-    LOG(FATAL) << "Should not be called on worker solver.";
-  }
-  void RestoreSolverStateFromBinaryProto(const string& state_file) {
-    LOG(FATAL) << "Should not be called on worker solver.";
-  }
-  void RestoreSolverStateFromHDF5(const string& state_file) {
-    LOG(FATAL) << "Should not be called on worker solver.";
-  }
-};
+// /**
+//  * @brief Solver that only computes gradients, used as worker
+//  *        for multi-GPU training.
+//  */
+// template <typename Dtype>
+// class WorkerSolver : public Solver<Dtype> {
+//  public:
+//   explicit WorkerSolver(const SolverParameter& param,
+//       const Solver<Dtype>* root_solver = NULL)
+//       : Solver<Dtype>(param, root_solver) {}
+//
+//  protected:
+//   void ApplyUpdate() {}
+//   void SnapshotSolverState(const string& model_filename) {
+//     LOG(FATAL) << "Should not be called on worker solver.";
+//   }
+//   void RestoreSolverStateFromBinaryProto(const string& state_file) {
+//     LOG(FATAL) << "Should not be called on worker solver.";
+//   }
+//   void RestoreSolverStateFromHDF5(const string& state_file) {
+//     LOG(FATAL) << "Should not be called on worker solver.";
+//   }
+// };
 
 }  // namespace caffe
 
