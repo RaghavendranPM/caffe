@@ -10,12 +10,12 @@ gpuids="0,1,2,3"
 ngpu="4"
 L="3"
 
-COMM="50"
+SYNC="50"
 
-outnamebase="yang/batch"$batch_size"_L"$L"_GPU"$ngpu"_COMM"$COMM
+outnamebase="yang/batch"$batch_size"_L"$L"_GPU"$ngpu"_SYNC"$SYNC
 echo $outnamebase
 
-./build/tools/caffe train --communication_cost $COMM \
+./build/tools/caffe train --sync_cost $SYNC \
     --solver=examples/mnist/lenet_solver.prototxt --gpu $gpuids 2>&1 | tee $outnamebase".log"
 
 cat $outnamebase".log" | grep "Test .* loss" > $outnamebase".testloss"

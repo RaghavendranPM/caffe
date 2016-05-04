@@ -14,8 +14,6 @@
 
 namespace caffe {
 
-int communication_cost = 0;
-
 enum Op {
   copy,
   replace_cpu,
@@ -296,9 +294,6 @@ void P2PSync<Dtype>::on_start() {
 #else
 //  CHECK(false);
 #endif
-  if (communication_cost) {
-    boost::this_thread::sleep_for(boost::chrono::milliseconds(communication_cost));
-  }
 
   // Wait for update from parent
   if (parent_) {

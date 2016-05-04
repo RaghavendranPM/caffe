@@ -48,10 +48,10 @@ DEFINE_string(sighup_effect, "snapshot",
              "Optional; action to take when a SIGHUP signal is received: "
              "snapshot, stop or none.");
 
-DEFINE_int32(communication_cost, 0, "Additional computation cost");
+DEFINE_int32(sync_cost, 0, "Additional cost per synchronization (ms)");
 
 namespace caffe {
-  extern int communication_cost;
+  extern int sync_cost;
 }
 
 // A simple registry for caffe commands.
@@ -159,8 +159,8 @@ caffe::SolverAction::Enum GetRequestedAction(
 // Train / Finetune a model.
 int train() {
   // Add additional computation cost
-  caffe::communication_cost = FLAGS_communication_cost;
-  LOG(INFO) << "Adding additional computation cost " << FLAGS_communication_cost;
+  caffe::sync_cost = FLAGS_sync_cost;
+  LOG(INFO) << "Adding additional computation cost " << FLAGS_sync_cost;
 
   CHECK_GT(FLAGS_solver.size(), 0) << "Need a solver definition to train.";
   CHECK(!FLAGS_snapshot.size() || !FLAGS_weights.size())

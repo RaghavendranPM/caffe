@@ -11,6 +11,8 @@
 
 namespace caffe {
 
+int sync_cost = 0;
+
 template<typename Dtype>
 void Solver<Dtype>::SetActionFunction(ActionCallback func) {
   action_request_function_ = func;
@@ -252,6 +254,11 @@ void Solver<Dtype>::Step(int iters) {
     }
     for (int i = 0; i < callbacks_.size(); ++i) {
       callbacks_[i]->on_params_ready();
+    }
+
+    // Add additional synchronization cost by sleeping after synchronization
+    if (sync_cost > 0) {
+      boost::this_thread::sleep_for(boost::chrono::milliseconds(sync_cost));
     }
 
     // Increment the internal iter_ counter -- its value should always indicate
