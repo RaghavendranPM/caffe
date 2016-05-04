@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 
+#include "boost/thread.hpp"
 #include "caffe/solver.hpp"
 #include "caffe/util/format.hpp"
 #include "caffe/util/hdf5.hpp"
