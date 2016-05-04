@@ -8,7 +8,7 @@
 batch_size="64"
 gpuids="0,1"
 ngpu="2"
-L="3"
+L=$1
 
 SYNC="200"
 
