@@ -6,16 +6,16 @@
 # L should also change in lenet_solver.prototxt
 
 batch_size="64"
-gpuids="0,1,2,3"
-ngpu="4"
+gpuids="0,1"
+ngpu="2"
 L="3"
 
-SYNC="50"
+SYNC="200"
 
 outnamebase="yang/batch"$batch_size"_L"$L"_GPU"$ngpu"_SYNC"$SYNC
 echo $outnamebase
 
 ./build/tools/caffe train --sync_cost $SYNC \
-    --solver=examples/mnist/lenet_solver.prototxt --gpu $gpuids 2>&1 | tee $outnamebase".log"
+    --solver=examples/mnist/lenet_solver_$L.prototxt --gpu $gpuids 2>&1 | tee $outnamebase".log"
 
 cat $outnamebase".log" | grep "Test .* loss" > $outnamebase".testloss"
